@@ -5,6 +5,9 @@
  * Use of this source code is governed by an MIT-style license that can be
  * found in the LICENSE file at https://angular.io/license
  */
+
+/// <reference types="trusted-types" />
+
 const domino = require('domino');
 
 import {ɵBrowserDomAdapter as BrowserDomAdapter, ɵsetRootDomAdapter as setRootDomAdapter} from '@angular/platform-browser';
@@ -17,6 +20,12 @@ function setDomTypes() {
   // Make all Domino types available as types in the global env.
   Object.assign(global, domino.impl);
   (global as any)['KeyboardEvent'] = domino.impl.Event;
+}
+
+class TrustedTypeError extends Error {
+  constructor (public tagName: string, public name: string, public type: string, public value: any) {
+    super(`Property ${name} of element ${tagName} requires ${type} value, but the value is ${value}!`);
+  }
 }
 
 /**
@@ -45,6 +54,27 @@ export class DominoAdapter extends BrowserDomAdapter {
   }
 
   private static defaultDoc: Document;
+
+  /**
+   * Throws an error if trusted types are enforced on server side (they are available in global object) and if the
+   * property requires trusted value, but the value is not a trusted type.
+   */
+  private trustedTypesAwarePropertyAssign(el: Element, name: string, value: string) {
+    const tagName = el.tagName.toLocaleLowerCase();
+    if (typeof TrustedTypes !== 'undefined') {
+      // TODO: remove cast once when TS types are updated.
+      const type = (TrustedTypes as any).getPropertyType(tagName, name)
+      if (type === 'TrustedHTML') {
+        throw new TrustedTypeError(tagName, name, type, value);
+      } else if (type === 'TrustedScriptURL') {
+        throw new TrustedTypeError(tagName, name, type, value);
+      } else if (type === 'TrustedScript') {
+        throw new TrustedTypeError(tagName, name, type, value);
+      }
+    }
+    (<any>el)[name] = value;
+  }
+
 
   logError(error: string) { console.error(error); }
 
@@ -103,9 +133,9 @@ export class DominoAdapter extends BrowserDomAdapter {
       this.setAttribute(el, 'href', value);
     } else if (name === 'innerText') {
       // Domino does not support innerText. Just map it to textContent.
-      el.textContent = value;
+      this.trustedTypesAwarePropertyAssign(el, 'textContent', value);
     }
-    (<any>el)[name] = value;
+    this.trustedTypesAwarePropertyAssign(el, name, value);
   }
 
   getGlobalEventTarget(doc: Document, target: string): EventTarget|null {

@@ -18,6 +18,7 @@ export function serializeTransferStateFactory(
     const script = doc.createElement('script');
     script.id = appId + '-state';
     script.setAttribute('type', 'application/json');
+    // transfer store json is escaped and executed on server, so the value doesn't need to be wrapped by trusted types.
     script.textContent = escapeHtml(transferStore.toJson());
     doc.body.appendChild(script);
   };

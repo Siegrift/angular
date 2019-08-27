@@ -720,6 +720,11 @@
   dependencies:
     "@types/node" "*"
 
+"@types/trusted-types@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@types/trusted-types/-/trusted-types-1.0.1.tgz#e517bd4496e0fc75a8c88047c5bb437942148993"
+  integrity sha512-+T99Y+JC3wc1e0BTBC8l60Pk4FNs5ynCWPZidAIbN07f2LjYRmlmoT5n0JybL9X0ghSFL/oUiYm3+YNR8WXPPA==
+
 "@types/yargs@^11.1.1":
   version "11.1.1"
   resolved "https://registry.yarnpkg.com/@types/yargs/-/yargs-11.1.1.tgz#2e724257167fd6b615dbe4e54301e65fe597433f"
